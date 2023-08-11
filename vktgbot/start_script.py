@@ -40,17 +40,17 @@ def start_script():
         int(last_known_id)+1
     )
     if not items:
-        new_last_id: int = int(last_known_id)+1
+        new_last_id: int = int(last_known_id)+config.REQ_COUNT
         write_known_id(new_last_id)
         
         return 1
 
-    logger.info(f"Got a few posts with IDs: {items[-1]['id']} - {items[0]['id']}.")
+    logger.info(f"Got a few posts with IDs: {items[0]['id']} - {items[-1]['id']}.")
 
-    new_last_id: int = items[0]["id"]
+    new_last_id: int = items[-1]["id"]
 
     if new_last_id > last_known_id:
-        for item in items[::-1]:
+        for item in items:
             item: dict
             if item["id"] <= last_known_id:
                 continue
