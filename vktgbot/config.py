@@ -17,6 +17,7 @@ REQ_FILTER: str = os.getenv("VAR_REQ_FILTER", "owner")
 
 SINGLE_START: bool = os.getenv("VAR_SINGLE_START", "").lower() in ("true",)
 TIME_TO_SLEEP: int = int(os.getenv("VAR_TIME_TO_SLEEP", 120))
+SHORT_TIME_TO_SLEEP: int = int(os.getenv("VAR_SHORT_TIME_TO_SLEEP", 5))
 SKIP_ADS_POSTS: bool = os.getenv("VAR_SKIP_ADS_POSTS", "").lower() in ("true",)
 SKIP_COPYRIGHTED_POST: bool = os.getenv("VAR_SKIP_COPYRIGHTED_POST", "").lower() in ("true")
 SKIP_REPOSTS: bool = os.getenv("VAR_SKIP_REPOSTS", "").lower() in ("true")

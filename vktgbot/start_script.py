@@ -43,7 +43,7 @@ def start_script():
         new_last_id: int = int(last_known_id)+1
         write_known_id(new_last_id)
         
-        return
+        return 1
 
     logger.info(f"Got a few posts with IDs: {items[-1]['id']} - {items[0]['id']}.")
 
