@@ -3,7 +3,8 @@ import os
 
 import dotenv
 
-dotenv.load_dotenv()
+dotenv_file = dotenv.find_dotenv(usecwd=True)
+dotenv.load_dotenv(dotenv_file)
 
 
 TG_CHANNEL: str = os.getenv("VAR_TG_CHANNEL", "")
