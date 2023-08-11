@@ -5,8 +5,8 @@ from aiogram.utils import executor
 from loguru import logger
 
 import config
-from api_requests import get_data_from_vk, get_group_name
-from last_id import read_id, write_id
+from api_requests import get_data_from_vk, get_group_name, get_last_id
+from last_id import read_id, write_id, read_known_id, write_known_id
 from parse_posts import parse_post
 from send_posts import send_post
 from tools import blacklist_check, prepare_temp_folder, whitelist_check
@@ -16,8 +16,20 @@ def start_script():
     bot = Bot(token=config.TG_BOT_TOKEN)
     dp = Dispatcher(bot)
 
-    last_known_id = read_id()
+    last_known_id = read_known_id()
+    last_wall_id = read_id()
     logger.info(f"Last known ID: {last_known_id}")
+
+    if int(last_known_id) >= int(last_wall_id):
+        last_wall_id: int = get_last_id(
+            config.VK_TOKEN,
+            config.REQ_VERSION,
+            config.VK_DOMAIN,
+            config.REQ_FILTER
+        )
+        if last_wall_id:
+           write_id(last_wall_id)
+        return
 
     items: Union[dict, None] = get_data_from_vk(
         config.VK_TOKEN,
@@ -25,12 +37,14 @@ def start_script():
         config.VK_DOMAIN,
         config.REQ_FILTER,
         config.REQ_COUNT,
+        int(last_known_id)+1
     )
     if not items:
+        new_last_id: int = int(last_known_id)+1
+        write_known_id(new_last_id)
+        
         return
 
-    if "is_pinned" in items[0]:
-        items = items[1:]
     logger.info(f"Got a few posts with IDs: {items[-1]['id']} - {items[0]['id']}.")
 
     new_last_id: int = items[0]["id"]
@@ -41,6 +55,9 @@ def start_script():
             if item["id"] <= last_known_id:
                 continue
             logger.info(f"Working with post with ID: {item['id']}.")
+            if "is_deleted" in item and item["is_deleted"] == True:
+                logger.info(f"Post was deleted: {item['deleted_reason']}.")
+                continue
             if blacklist_check(config.BLACKLIST, item["text"]):
                 continue
             if whitelist_check(config.WHITELIST, item["text"]):
@@ -81,4 +98,4 @@ def start_script():
                     ),
                 )
 
-        write_id(new_last_id)
+        write_known_id(new_last_id)
