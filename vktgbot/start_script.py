@@ -95,6 +95,7 @@ def start_script():
                         parsed_post["text"],
                         parsed_post["photos"],
                         parsed_post["docs"],
+                        avatar_update = parsed_post["avatar_update"]
                     ),
                 )
 

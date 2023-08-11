@@ -24,9 +24,13 @@ def parse_post(item: dict, repost_exists: bool, item_type: str, group_name: str)
     if "attachments" in item:
         parse_attachments(item["attachments"], text, urls, videos, photos, docs)
 
+    avatar_update = False
+    if photos and "post_source" in item and "data" in item["post_source"] and item["post_source"]["data"]=="profile_photo":
+       avatar_update = True
+
     text = add_urls_to_text(text, urls, videos)
     logger.info(f"{item_type.capitalize()} parsing is complete.")
-    return {"text": text, "photos": photos, "docs": docs}
+    return {"text": text, "photos": photos, "docs": docs, "avatar_update": avatar_update}
 
 
 def parse_attachments(attachments, text, urls, videos, photos, docs):
