@@ -21,7 +21,7 @@ def start_script():
     logger.info(f"Last known ID: {last_known_id}")
 
     if int(last_known_id) >= int(last_wall_id):
-        last_wall_id: int = get_last_id(
+        last_wall_id = get_last_id(
             config.VK_TOKEN,
             config.REQ_VERSION,
             config.VK_DOMAIN,
