@@ -7,6 +7,7 @@ by @alcortazzo
 """
 
 import time
+import asyncio
 
 from loguru import logger
 
@@ -27,7 +28,7 @@ logger.info("Script is started.")
 
 @logger.catch
 def main():
-    exit_code = start_script()
+    exit_code = asyncio.run(start_script())
     prepare_temp_folder()
     return exit_code
 

@@ -1,8 +1,8 @@
 from typing import Union
 
 from aiogram import Bot, Dispatcher
-from aiogram.utils import executor
 from loguru import logger
+import asyncio
 
 import config
 from api_requests import get_data_from_vk, get_group_name, get_last_id
@@ -12,9 +12,9 @@ from send_posts import send_post
 from tools import blacklist_check, prepare_temp_folder, whitelist_check
 
 
-def start_script():
+async def start_script():
     bot = Bot(token=config.TG_BOT_TOKEN)
-    dp = Dispatcher(bot)
+    #dp = Dispatcher()
 
     last_known_id = read_known_id()
     last_wall_id = read_id()
@@ -29,6 +29,7 @@ def start_script():
         )
         if last_wall_id:
            write_id(last_wall_id)
+        await bot.session.close()
         return
 
     items: Union[dict, None] = get_data_from_vk(
@@ -43,6 +44,7 @@ def start_script():
         new_last_id: int = int(last_known_id)+config.REQ_COUNT
         write_known_id(new_last_id)
         
+        await bot.session.close()
         return 1
 
     logger.info(f"Got a few posts with IDs: {items[0]['id']} - {items[-1]['id']}.")
@@ -87,16 +89,15 @@ def start_script():
                 logger.info(f"Starting parsing of the {item_part}")
                 parsed_post = parse_post(item_parts[item_part], repost_exists, item_part, group_name)
                 logger.info(f"Starting sending of the {item_part}")
-                executor.start(
-                    dp,
-                    send_post(
+                
+                await send_post(
                         bot,
                         config.TG_CHANNEL,
                         parsed_post["text"],
                         parsed_post["photos"],
                         parsed_post["docs"],
                         avatar_update = parsed_post["avatar_update"]
-                    ),
                 )
-
+                
         write_known_id(new_last_id)
+    await bot.session.close()

@@ -1,8 +1,7 @@
 import asyncio
 import requests
 
-from aiogram import Bot, types
-from aiogram.utils import exceptions
+from aiogram import Bot, types, exceptions
 from loguru import logger
 
 from tools import split_text
@@ -22,11 +21,11 @@ async def send_post(bot: Bot, tg_channel: str, text: str, photos: list, docs: li
             await send_photos_post(bot, tg_channel, text, photos)
         if docs:
             await send_docs_post(bot, tg_channel, docs)
-    except exceptions.RetryAfter as ex:
+    except exceptions.TelegramRetryAfter as ex:
         logger.warning(f"Flood limit is exceeded. Sleep {ex.timeout} seconds. Try: {num_tries}")
         await asyncio.sleep(ex.timeout)
         await send_post(bot, tg_channel, text, photos, docs, num_tries)
-    except exceptions.BadRequest as ex:
+    except exceptions.TelegramBadRequest as ex:
         logger.warning(f"Bad request. Wait 60 seconds. Try: {num_tries}. {ex}")
         await asyncio.sleep(60)
         await send_post(bot, tg_channel, text, photos, docs, num_tries)
@@ -37,7 +36,7 @@ async def send_text_post(bot: Bot, tg_channel: str, text: str) -> None:
         return
 
     if len(text) < 4096:
-        await bot.send_message(tg_channel, text, parse_mode=types.ParseMode.HTML)
+        await bot.send_message(tg_channel, text, parse_mode="HTML")
     else:
         text_parts = split_text(text, 4084)
         prepared_text_parts = (
@@ -47,21 +46,21 @@ async def send_text_post(bot: Bot, tg_channel: str, text: str) -> None:
         )
 
         for part in prepared_text_parts:
-            await bot.send_message(tg_channel, part, parse_mode=types.ParseMode.HTML)
+            await bot.send_message(tg_channel, part, parse_mode="HTML")
             await asyncio.sleep(0.5)
     logger.info("Text post sent to Telegram.")
 
 
 async def send_photo_post(bot: Bot, tg_channel: str, text: str, photos: list, avatar_update: bool = False) -> None:
     if avatar_update:
-        await bot.set_chat_photo(tg_channel, types.InputFile(requests.get(photos[0], stream=True).raw, filename="avatar.jpg"))
+        await bot.set_chat_photo(tg_channel, types.BufferedInputFile(requests.get(photos[0], stream=True).raw, filename="avatar.jpg"))
     if len(text) <= 1024:
-        await bot.send_photo(tg_channel, photos[0], text, parse_mode=types.ParseMode.HTML)
+        await bot.send_photo(tg_channel, photos[0], caption=text, parse_mode="HTML")
         logger.info("Text post (<=1024) with photo sent to Telegram.")
     else:
         prepared_text = f'<a href="{photos[0]}"> </a>{text}'
         if len(prepared_text) <= 4096:
-            await bot.send_message(tg_channel, prepared_text, parse_mode=types.ParseMode.HTML)
+            await bot.send_message(tg_channel, prepared_text, parse_mode="HTML")
         else:
             await send_text_post(bot, tg_channel, text)
             await bot.send_photo(tg_channel, photos[0])
@@ -69,13 +68,13 @@ async def send_photo_post(bot: Bot, tg_channel: str, text: str, photos: list, av
 
 
 async def send_photos_post(bot: Bot, tg_channel: str, text: str, photos: list) -> None:
-    media = types.MediaGroup()
+    media: list[types.InputMediaPhoto] = []
     for photo in photos:
-        media.attach_photo(types.InputMediaPhoto(photo))
+        media.append(types.InputMediaPhoto(media=photo))
 
     if (len(text) > 0) and (len(text) <= 1024):
-        media.media[0].caption = text
-        media.media[0].parse_mode = types.ParseMode.HTML
+        media[0].parse_mode = "HTML"
+        media[0].caption = text
     elif len(text) > 1024:
         await send_text_post(bot, tg_channel, text)
     await bot.send_media_group(tg_channel, media)
@@ -83,8 +82,8 @@ async def send_photos_post(bot: Bot, tg_channel: str, text: str, photos: list) -
 
 
 async def send_docs_post(bot: Bot, tg_channel: str, docs: list) -> None:
-    media = types.MediaGroup()
+    media = []
     for doc in docs:
-        media.attach_document(types.InputMediaDocument(open(f"./temp/{doc['title']}", "rb")))
+        media.append(types.InputMediaDocument(media = types.BufferedInputFile(open(f"./temp/{doc['title']}", "rb"), doc['title'])))
     await bot.send_media_group(tg_channel, media)
     logger.info("Documents sent to Telegram.")
