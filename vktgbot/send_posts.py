@@ -22,8 +22,8 @@ async def send_post(bot: Bot, tg_channel: str, text: str, photos: list, docs: li
         if docs:
             await send_docs_post(bot, tg_channel, docs)
     except exceptions.TelegramRetryAfter as ex:
-        logger.warning(f"Flood limit is exceeded. Sleep {ex.timeout} seconds. Try: {num_tries}")
-        await asyncio.sleep(ex.timeout)
+        logger.warning(f"Flood limit is exceeded. Sleep {ex.retry_after} seconds. Try: {num_tries}")
+        await asyncio.sleep(ex.retry_after)
         await send_post(bot, tg_channel, text, photos, docs, num_tries)
     except exceptions.TelegramBadRequest as ex:
         logger.warning(f"Bad request. Wait 60 seconds. Try: {num_tries}. {ex}")
