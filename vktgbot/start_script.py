@@ -30,6 +30,8 @@ async def start_script():
         if last_wall_id:
            write_id(last_wall_id)
         await bot.session.close()
+        logger.info(f"Script went to sleep for {config.TIME_TO_SLEEP} seconds.")
+        await asyncio.sleep(config.TIME_TO_SLEEP)
         return
 
     items: Union[dict, None] = get_data_from_vk(
@@ -44,7 +46,8 @@ async def start_script():
         new_last_id: int = int(last_known_id)+config.REQ_COUNT
         write_known_id(new_last_id)
         
-        await bot.session.close()
+        logger.info(f"Script went to sleep for {config.SHORT_TIME_TO_SLEEP} seconds.")
+        await bot.session.close(config.SHORT_TIME_TO_SLEEP)
         return 1
 
     logger.info(f"Got a few posts with IDs: {items[0]['id']} - {items[-1]['id']}.")
@@ -101,3 +104,5 @@ async def start_script():
                 
         write_known_id(new_last_id)
     await bot.session.close()
+    logger.info(f"Script went to sleep for {config.TIME_TO_SLEEP} seconds.")
+    await asyncio.sleep(config.TIME_TO_SLEEP)
