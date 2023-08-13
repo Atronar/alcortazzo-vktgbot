@@ -91,7 +91,6 @@ def get_photo(attachment: dict) -> Union[str, None]:
                 "",
                 next(
                     (item for item in sizes if item["type"] == type_)
-                    False,
                 )["url"],
             )
     else:
