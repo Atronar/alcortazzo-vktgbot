@@ -5,14 +5,18 @@ import requests
 from loguru import logger
 
 from api_requests import get_video_url
-from config import REQ_VERSION, VK_TOKEN
+from config import REQ_VERSION, VK_TOKEN, SHOW_ORIGINAL_POST_LINK
 from tools import add_urls_to_text, prepare_text_for_html, prepare_text_for_reposts, reformat_vk_links
 
 
 def parse_post(item: dict, repost_exists: bool, item_type: str, group_name: str) -> dict:
     text = prepare_text_for_html(item["text"])
+    post_link_text = ''
     if repost_exists:
         text = prepare_text_for_reposts(text, item, item_type, group_name)
+    elif SHOW_ORIGINAL_POST_LINK:
+        post_link = f'https://vk.com/wall{item["owner_id"]}_{item["id"]}'
+        text = f'<a href="{post_link}"><b>Original post</b></a>\n\n{text}'
 
     text = reformat_vk_links(text)
 
