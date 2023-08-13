@@ -37,7 +37,7 @@ def get_data_from_vk(
 
 def get_last_id(
     vk_token: str, req_version: float, vk_domain: str, req_filter: str
-) -> Union[dict, None]:
+) -> Union[int, None]:
     logger.info("Trying to get posts from VK.")
 
     match = re.search(r"^(club|public)(\d+)$", vk_domain)
@@ -103,7 +103,7 @@ def get_group_name(vk_token: str, req_version: float, owner_id) -> str:
     return ""
 
 
-def get_group_id(vk_token: str, req_version: float, domain) -> int:
+def get_group_id(vk_token: str, req_version: float, domain) -> int | None:
     response = requests.get(
         "https://api.vk.com/method/groups.getById",
         params={
@@ -117,4 +117,4 @@ def get_group_id(vk_token: str, req_version: float, domain) -> int:
         return data["response"][0]["id"]
     elif "error" in data:
         logger.error(f"Error was detected when requesting data from VK: {data['error']['error_msg']}")
-    return ""
+    return None
