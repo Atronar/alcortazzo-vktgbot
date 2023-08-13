@@ -90,7 +90,7 @@ def get_photo(attachment: dict) -> Union[str, None]:
                 "&([a-zA-Z]+(_[a-zA-Z]+)+)=([a-zA-Z0-9-_]+)",
                 "",
                 next(
-                    (item for item in sizes if item["type"] == type_),
+                    (item for item in sizes if item["type"] == type_)
                     False,
                 )["url"],
             )
