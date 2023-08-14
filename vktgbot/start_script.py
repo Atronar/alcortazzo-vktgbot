@@ -47,7 +47,7 @@ async def start_script():
     if new_last_unixtime > last_unixtime or new_last_wall_id != last_wall_id:
         for item in items[::-1]:
             item: dict
-            if item["date"] < last_unixtime:
+            if item["date"] <= last_unixtime:
                 continue
             logger.info(f"Working with post with ID: {item['source_id']}_{item['id']}.")
             if "is_deleted" in item and item["is_deleted"] == True:
