@@ -6,7 +6,7 @@ import asyncio
 import time
 
 import config
-from api_requests import get_data_from_vk, get_group_name, get_last_id
+from api_requests import get_data_from_vk, get_user_name, get_group_name, get_last_id
 from last_id import read_id, write_id, read_known_id, write_known_id
 from parse_posts import parse_post
 from send_posts import send_post
