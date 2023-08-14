@@ -57,7 +57,7 @@ async def start_script():
                 continue
             if whitelist_check(config.WHITELIST, item["text"]):
                 continue
-            if config.SKIP_ADS_POSTS and item["marked_as_ads"]:
+            if config.SKIP_ADS_POSTS and "marked_as_ads" in item and item["marked_as_ads"]:
                 logger.info("Post was skipped as an advertisement.")
                 continue
             if config.SKIP_COPYRIGHTED_POST and "copyright" in item:
@@ -69,11 +69,18 @@ async def start_script():
             group_name = ""
             if "copy_history" in item and not config.SKIP_REPOSTS:
                 item_parts["repost"] = item["copy_history"][0]
-                group_name = get_group_name(
-                    config.VK_TOKEN,
-                    config.REQ_VERSION,
-                    abs(item_parts["repost"]["owner_id"]),
-                )
+                if item_parts["repost"]["owner_id"] < 0:
+                    group_name = get_group_name(
+                        config.VK_TOKEN,
+                        config.REQ_VERSION,
+                        abs(item_parts["repost"]["owner_id"]),
+                    )
+                else:
+                    group_name = get_user_name(
+                        config.VK_TOKEN,
+                        config.REQ_VERSION,
+                        item_parts["repost"]["owner_id"],
+                    )
                 logger.info("Detected repost in the post.")
 
             for item_part in item_parts:

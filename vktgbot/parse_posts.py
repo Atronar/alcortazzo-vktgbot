@@ -5,7 +5,7 @@ import time
 import requests
 from loguru import logger
 
-from api_requests import get_video_url, get_group_name
+from api_requests import get_video_url, get_user_name, get_group_name
 from config import REQ_VERSION, VK_TOKEN, SHOW_ORIGINAL_POST_LINK
 from tools import add_urls_to_text, prepare_text_for_html, prepare_text_for_reposts, reformat_vk_links
 
@@ -15,11 +15,18 @@ def parse_post(item: dict, repost_exists: bool, item_type: str, group_name: str)
     if repost_exists:
         text = prepare_text_for_reposts(text, item, item_type, group_name)
     if item_type == 'post':
-        group_name = get_group_name(
-            VK_TOKEN,
-            REQ_VERSION,
-            abs(item["owner_id"]),
-        )
+        if item["owner_id"] < 0:
+            group_name = get_group_name(
+                VK_TOKEN,
+                REQ_VERSION,
+                abs(item["owner_id"]),
+            )
+        else:
+            group_name = get_user_name(
+                VK_TOKEN,
+                REQ_VERSION,
+                item["owner_id"],
+            )
         post_link = f'https://vk.com/wall{item["owner_id"]}_{item["id"]}'
         text = f'<a href="{post_link}"><b>{group_name}</b>\n' \
                f'<i>{time.strftime("%d %b %Y %H:%M:%S", time.localtime(item["date"]))}</i></a>' \

@@ -95,6 +95,23 @@ def get_video_url(vk_token: str, req_version: float, owner_id: str, video_id: st
     return ""
 
 
+def get_user_name(vk_token: str, req_version: float, owner_id) -> str:
+    response = requests.get(
+        "https://api.vk.com/method/users.get",
+        params={
+            "access_token": vk_token,
+            "v": req_version,
+            "user_ids": owner_id,
+        },
+    )
+    data = response.json()
+    if "response" in data:
+        return f'{data["response"][0]["first_name"]} {data["response"][0]["last_name"]}'
+    elif "error" in data:
+        logger.error(f"Error was detected when requesting data from VK: {data['error']['error_msg']}")
+    return ""
+
+
 def get_group_name(vk_token: str, req_version: float, owner_id) -> str:
     response = requests.get(
         "https://api.vk.com/method/groups.getById",
