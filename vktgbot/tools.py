@@ -1,5 +1,6 @@
 import os
 import re
+import time
 
 from loguru import logger
 
@@ -41,12 +42,14 @@ def prepare_text_for_reposts(text: str, item: dict, item_type: str, group_name: 
         from_id = item["copy_history"][0]["owner_id"]
         id = item["copy_history"][0]["id"]
         link_to_repost = f"https://vk.com/wall{from_id}_{id}"
-        text = f'{text}\n\n<a href="{link_to_repost}"><b>REPOST ↓ {group_name}</b></a>'
+        text = f'{text}\n\n<a href="{link_to_repost}"><b>REPOST ↓ {group_name}</b>\n' \
+               f'<i>{time.strftime("%d %b %Y %H:%M:%S", time.localtime(item["date"]))}</i></a>'
     if item_type == "repost":
         from_id = item["owner_id"]
         id = item["id"]
         link_to_repost = f"https://vk.com/wall{from_id}_{id}"
-        text = f'<a href="{link_to_repost}"><b>REPOST ↓ {group_name}</b></a>\n\n{text}'
+        text = f'<a href="{link_to_repost}"><b>REPOST ↓ {group_name}</b>\n' \
+               f'<i>{time.strftime("%d %b %Y %H:%M:%S", time.localtime(item["date"]))}</i></a>\n\n{text}'
 
     return text
 
