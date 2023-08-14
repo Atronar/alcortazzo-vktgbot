@@ -6,30 +6,39 @@ from loguru import logger
 
 
 def get_data_from_vk(
-    vk_token: str, req_version: float, vk_domain: str, req_filter: str, req_count: int, req_start_post_id: int
+    vk_token: str,
+    last_wall_owner_id: int,
+    *,
+    req_filter: str | None = None,
+    return_banned: int | None = None,
+    start_time: int | None = None,
+    end_time: int | None = None,
+    max_photos: int | None = None,
+    source_ids: str | None = None,
+    count: int | None = None,
+    v: float,
 ) -> Union[dict, None]:
     logger.info("Trying to get posts from VK.")
 
-    match = re.search(r"^(club|public)(\d+)$", vk_domain)
-    if match:
-        owner_id = match.groups()[1]
-    else:
-        owner_id = get_group_id(vk_token, req_version, vk_domain)
-    owner_id = f"-{owner_id}"
-
     response = requests.get(
-        "https://api.vk.com/method/wall.getById",
+        "https://api.vk.com/method/newsfeed.get",
         params=dict(
             {
                 "access_token": vk_token,
-                "v": req_version,
-                "posts": ','.join(f"{owner_id}_{req_post_id}" for req_post_id in range(req_start_post_id, req_start_post_id+req_count)),
+                "filters": req_filter,
+                "return_banned": return_banned,
+                "start_time": start_time,
+                "end_time": end_time,
+                "max_photos": max_photos,
+                "source_ids": source_ids,
+                "count": count,
+                "v": v,
             },
         ),
     )
-    data = response.json()
+    data: dict = response.json()
     if "response" in data:
-        return data["response"]
+        return data["response"]["items"]
     elif "error" in data:
         logger.error("Error was detected when requesting data from VK: " f"{data['error']['error_msg']}")
     return None

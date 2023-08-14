@@ -7,7 +7,7 @@ from loguru import logger
 from tools import split_text
 
 
-async def send_post(bot: Bot, tg_channel: str, text: str, photos: list, docs: list, num_tries: int = 0, avatar_update: bool = False) -> None:
+async def send_post(bot: Bot, tg_channel: str, text: str, photos: list, docs: list, num_tries: int = 0) -> None:
     num_tries += 1
     if num_tries > 3:
         logger.error("Post was not sent to Telegram. Too many tries.")
@@ -16,7 +16,7 @@ async def send_post(bot: Bot, tg_channel: str, text: str, photos: list, docs: li
         if len(photos) == 0:
             await send_text_post(bot, tg_channel, text)
         elif len(photos) == 1:
-            await send_photo_post(bot, tg_channel, text, photos, avatar_update=avatar_update)
+            await send_photo_post(bot, tg_channel, text, photos)
         elif len(photos) >= 2:
             await send_photos_post(bot, tg_channel, text, photos)
         if docs:
@@ -51,9 +51,7 @@ async def send_text_post(bot: Bot, tg_channel: str, text: str) -> None:
     logger.info("Text post sent to Telegram.")
 
 
-async def send_photo_post(bot: Bot, tg_channel: str, text: str, photos: list, avatar_update: bool = False) -> None:
-    if avatar_update:
-        await bot.set_chat_photo(tg_channel, types.BufferedInputFile(requests.get(photos[0], stream=True).raw, filename="avatar.jpg"))
+async def send_photo_post(bot: Bot, tg_channel: str, text: str, photos: list) -> None:
     if len(text) <= 1024:
         await bot.send_photo(tg_channel, photos[0], caption=text, parse_mode="HTML")
         logger.info("Text post (<=1024) with photo sent to Telegram.")

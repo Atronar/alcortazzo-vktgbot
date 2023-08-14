@@ -1,8 +1,9 @@
 from typing import Union
 
-from aiogram import Bot, Dispatcher
+from aiogram import Bot
 from loguru import logger
 import asyncio
+import time
 
 import config
 from api_requests import get_data_from_vk, get_group_name, get_last_id
@@ -14,53 +15,42 @@ from tools import blacklist_check, prepare_temp_folder, whitelist_check
 
 async def start_script():
     bot = Bot(token=config.TG_BOT_TOKEN)
-    #dp = Dispatcher()
 
-    last_known_id = read_known_id()
+    last_unixtime = read_known_id()
     last_wall_id = read_id()
-    logger.info(f"Last known ID: {last_known_id}")
+    logger.info(f"Last check: {time.strftime('%d %b %Y %H:%M:%S', time.localtime(last_unixtime))}")
 
-    if int(last_known_id) >= int(last_wall_id):
-        last_wall_id = get_last_id(
-            config.VK_TOKEN,
-            config.REQ_VERSION,
-            config.VK_DOMAIN,
-            config.REQ_FILTER
-        )
-        if last_wall_id:
-           write_id(last_wall_id)
+    items: Union[dict, None] = get_data_from_vk(
+        config.VK_TOKEN,
+        int(last_wall_id),
+        req_filter = config.REQ_FILTER,
+        return_banned = 1,
+        start_time = int(last_unixtime),
+        source_ids = "groups,pages",
+        count = config.REQ_COUNT,
+        v = config.REQ_VERSION,
+    )
+    print(items)
+    if not items:
+        new_last_unixtime: int = max(int(time.time()) - 60, last_unixtime)
+        write_known_id(new_last_unixtime)
+        
         await bot.session.close()
         logger.info(f"Script went to sleep for {config.TIME_TO_SLEEP} seconds.")
         await asyncio.sleep(config.TIME_TO_SLEEP)
         return
 
-    items: Union[dict, None] = get_data_from_vk(
-        config.VK_TOKEN,
-        config.REQ_VERSION,
-        config.VK_DOMAIN,
-        config.REQ_FILTER,
-        config.REQ_COUNT,
-        int(last_known_id)+1
-    )
-    if not items:
-        new_last_id: int = int(last_known_id)+config.REQ_COUNT
-        write_known_id(new_last_id)
-        
-        await bot.session.close()
-        logger.info(f"Script went to sleep for {config.SHORT_TIME_TO_SLEEP} seconds.")
-        await asyncio.sleep(config.SHORT_TIME_TO_SLEEP)
-        return 1
+    logger.info(f"Got a few posts with IDs: {items[-1]['source_id']}_{items[-1]['id']} - {items[0]['source_id']}_{items[0]['id']}.")
 
-    logger.info(f"Got a few posts with IDs: {items[0]['id']} - {items[-1]['id']}.")
+    new_last_unixtime: int = items[0]["date"]
+    new_last_wall_id: int = items[0]["source_id"]
 
-    new_last_id: int = items[-1]["id"]
-
-    if new_last_id > last_known_id:
-        for item in items:
+    if new_last_unixtime > last_unixtime or new_last_wall_id != last_wall_id:
+        for item in items[::-1]:
             item: dict
-            if item["id"] <= last_known_id:
+            if item["date"] < last_unixtime:
                 continue
-            logger.info(f"Working with post with ID: {item['id']}.")
+            logger.info(f"Working with post with ID: {item['source_id']}_{item['id']}.")
             if "is_deleted" in item and item["is_deleted"] == True:
                 logger.info(f"Post was deleted: {item['deleted_reason']}.")
                 continue
@@ -75,6 +65,7 @@ async def start_script():
                 logger.info("Post was skipped as an copyrighted post.")
                 continue
 
+            #if item["type"] == "post":
             item_parts = {"post": item}
             group_name = ""
             if "copy_history" in item and not config.SKIP_REPOSTS:
@@ -100,10 +91,10 @@ async def start_script():
                         parsed_post["text"],
                         parsed_post["photos"],
                         parsed_post["docs"],
-                        avatar_update = parsed_post["avatar_update"]
                 )
                 
-        write_known_id(new_last_id)
+        write_known_id(new_last_unixtime)
+        write_id(new_last_wall_id)
     await bot.session.close()
     logger.info(f"Script went to sleep for {config.TIME_TO_SLEEP} seconds.")
     await asyncio.sleep(config.TIME_TO_SLEEP)

@@ -38,12 +38,12 @@ def prepare_temp_folder():
 
 def prepare_text_for_reposts(text: str, item: dict, item_type: str, group_name: str) -> str:
     if item_type == "post" and text:
-        from_id = item["copy_history"][0]["from_id"]
+        from_id = item["copy_history"][0]["owner_id"]
         id = item["copy_history"][0]["id"]
         link_to_repost = f"https://vk.com/wall{from_id}_{id}"
         text = f'{text}\n\n<a href="{link_to_repost}"><b>REPOST ↓ {group_name}</b></a>'
     if item_type == "repost":
-        from_id = item["from_id"]
+        from_id = item["owner_id"]
         id = item["id"]
         link_to_repost = f"https://vk.com/wall{from_id}_{id}"
         text = f'<a href="{link_to_repost}"><b>REPOST ↓ {group_name}</b></a>\n\n{text}'
