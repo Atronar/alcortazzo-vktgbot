@@ -92,8 +92,8 @@ async def start_script():
                         parsed_post["docs"],
                 )
                 
-        write_known_id(new_last_unixtime)
-        write_id(new_last_wall_id)
+            write_known_id(item["date"])
+            write_id(item["source_id"])
     await bot.session.close()
     logger.info(f"Script went to sleep for {config.TIME_TO_SLEEP} seconds.")
     await asyncio.sleep(config.TIME_TO_SLEEP)
