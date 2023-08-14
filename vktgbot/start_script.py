@@ -30,7 +30,6 @@ async def start_script():
         count = config.REQ_COUNT,
         v = config.REQ_VERSION,
     )
-    print(items)
     if not items:
         new_last_unixtime: int = max(int(time.time()) - 60, last_unixtime)
         write_known_id(new_last_unixtime)
