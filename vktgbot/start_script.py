@@ -24,9 +24,9 @@ async def start_script():
         config.VK_TOKEN,
         int(last_wall_id),
         req_filter = config.REQ_FILTER,
-        return_banned = 1,
+        return_banned = config.REQ_RETURN_BANNED,
         start_time = int(last_unixtime),
-        source_ids = "groups,pages",
+        source_ids = config.REQ_SOURCE_IDS,
         count = config.REQ_COUNT,
         v = config.REQ_VERSION,
     )
