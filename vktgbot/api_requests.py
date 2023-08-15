@@ -88,8 +88,11 @@ def get_video_url(vk_token: str, req_version: float, owner_id: str, video_id: st
         },
     )
     data = response.json()
-    if "response" in data and data["response"]["items"]:
-        return data["response"]["items"][0]["files"].get("external", "")
+    if "response" in data:
+        return data["response"] \
+            .get("items", [{}])[0] \
+            .get("files", {}) \
+            .get("external", "")
     elif "error" in data:
         logger.error(f"Error was detected when requesting data from VK: {data['error']['error_msg']}")
     return ""
