@@ -5,7 +5,7 @@ from aiogram import Bot, types
 from aiogram.utils import exceptions
 from loguru import logger
 
-from tools import split_text
+from tools import split_text, slug_filename
 
 
 async def send_post(bot: Bot, tg_channel: str, text: str, photos: list, docs: list, num_tries: int = 0, avatar_update: bool = False) -> None:
@@ -85,7 +85,7 @@ async def send_photos_post(bot: Bot, tg_channel: str, text: str, photos: list) -
 async def send_docs_post(bot: Bot, tg_channel: str, docs: list) -> None:
     media = types.MediaGroup()
     for doc in docs:
-        with open(f"./temp/{doc['title']}", "rb") as doc_file:
-            media.attach_document(types.InputMediaDocument(doc_file))
+        with open(f"./temp/{slug_filename(doc['title'])}", "rb") as doc_file:
+            media.attach_document(types.InputMediaDocument(doc_file.read()))
     await bot.send_media_group(tg_channel, media)
     logger.info("Documents sent to Telegram.")
