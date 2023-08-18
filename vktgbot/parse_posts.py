@@ -6,7 +6,7 @@ import requests
 from loguru import logger
 
 from api_requests import get_video_url, get_user_name, get_group_name
-from config import REQ_VERSION, VK_TOKEN, SHOW_ORIGINAL_POST_LINK
+from config import REQ_VERSION, VK_TOKEN, SHOW_ORIGINAL_POST_LINK, SHOW_COPYRIGHT_POST_LINK
 from tools import add_urls_to_text, prepare_text_for_html, prepare_text_for_reposts, reformat_vk_links, slug_filename
 
 
@@ -31,6 +31,13 @@ def parse_post(item: dict, repost_exists: bool, item_type: str, group_name: str)
         text = f'<a href="{post_link}"><b>{group_name}</b>\n' \
                f'<i>{time.strftime("%d %b %Y %H:%M:%S", time.localtime(item["date"]))}</i></a>' \
                f'\n\n{text}'
+
+    if SHOW_COPYRIGHT_POST_LINK:
+        copyright_link = item.get("copyright", {}).get("link", "")
+        copyright_name = item.get("copyright", {}).get("name", copyright_link)
+        if copyright_link:
+            text = f'{text}\n\n' \
+                   f'<a href="{copyright_link}">{copyright_name}</a>' \
 
     text = reformat_vk_links(text)
 
