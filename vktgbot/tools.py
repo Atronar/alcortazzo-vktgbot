@@ -94,3 +94,9 @@ def reformat_vk_links(text: str) -> str:
         match = re.search(r"\[([\w.]+?)\|(.+?)\]", text)
 
     return text
+
+def slug_filename(text: str) -> str:
+    invalid_chars = r'<>:"/\|?*'
+    for char in invalid_chars:
+        text = text.replace(char, '')
+    return text
