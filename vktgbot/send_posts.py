@@ -84,8 +84,13 @@ async def send_photos_post(bot: Bot, tg_channel: str, text: str, photos: list) -
 
 async def send_docs_post(bot: Bot, tg_channel: str, docs: list) -> None:
     media = types.MediaGroup()
+    opened_docs = []
     for doc in docs:
-        with open(f"./temp/{slug_filename(doc['title'])}", "rb") as doc_file:
-            media.attach_document(types.InputMediaDocument(doc_file.read()))
+        doc_file = open(f"./temp/{slug_filename(doc['title'])}", "rb")
+        opened_docs.append(doc_file)
+        media.attach_document(types.InputMediaDocument(doc_file))
+
     await bot.send_media_group(tg_channel, media)
+    for doc_file in opened_docs:
+        doc_file.close()
     logger.info("Documents sent to Telegram.")
