@@ -14,13 +14,15 @@ async def send_post(bot: Bot, tg_channel: str, text: str, photos: list, docs: li
         logger.error("Post was not sent to Telegram. Too many tries.")
         return
     try:
-        if len(photos) == 0:
+        if len(photos) == 0 and len(docs) == 0:
             await send_text_post(bot, tg_channel, text)
         elif len(photos) == 1:
             await send_photo_post(bot, tg_channel, text, photos, avatar_update=avatar_update)
         elif len(photos) >= 2:
             await send_photos_post(bot, tg_channel, text, photos)
-        if docs:
+        if docs and len(photos) == 0:
+            await send_docs_post(bot, tg_channel, docs, caption=text)
+        elif docs:
             await send_docs_post(bot, tg_channel, docs)
     except exceptions.RetryAfter as ex:
         logger.warning(f"Flood limit is exceeded. Sleep {ex.timeout} seconds. Try: {num_tries}")
@@ -82,13 +84,20 @@ async def send_photos_post(bot: Bot, tg_channel: str, text: str, photos: list) -
     logger.info("Text post with photos sent to Telegram.")
 
 
-async def send_docs_post(bot: Bot, tg_channel: str, docs: list) -> None:
+async def send_docs_post(bot: Bot, tg_channel: str, docs: list, caption: str = None) -> None:
     media = types.MediaGroup()
     opened_docs = []
     for doc in docs:
         doc_file = open(f"./temp/{slug_filename(doc['title'])}", "rb")
         opened_docs.append(doc_file)
         media.attach_document(types.InputMediaDocument(doc_file))
+
+    if caption:
+        if (len(caption) > 0) and (len(caption) <= 1024):
+            media.media[0].caption = caption
+            media.media[0].parse_mode = types.ParseMode.HTML
+        elif len(caption) > 1024:
+            await send_text_post(bot, tg_channel, caption)
 
     await bot.send_media_group(tg_channel, media)
     for doc_file in opened_docs:
