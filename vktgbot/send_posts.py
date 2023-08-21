@@ -98,8 +98,8 @@ async def send_docs_post(bot: Bot, tg_channel: str, docs: list, caption: str = N
 
     if caption:
         if (len(caption) > 0) and (len(caption) <= 1024):
-            media[0].caption = caption
             media[0].parse_mode = "HTML"
+            media[0].caption = caption
         elif len(caption) > 1024:
             await send_text_post(bot, tg_channel, caption)
 
