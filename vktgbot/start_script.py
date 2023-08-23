@@ -61,23 +61,23 @@ async def start_script():
             if item["id"] <= last_known_id:
                 continue
             logger.info(f"Working with post with ID: {item['id']}.")
-            if "is_deleted" in item and item["is_deleted"] == True:
+            if item.get("is_deleted", False) == True:
                 logger.info(f"Post was deleted: {item['deleted_reason']}.")
                 continue
             if blacklist_check(config.BLACKLIST, item["text"]):
                 continue
             if whitelist_check(config.WHITELIST, item["text"]):
                 continue
-            if config.SKIP_ADS_POSTS and item["marked_as_ads"]:
+            if config.SKIP_ADS_POSTS and item.get("marked_as_ads", False):
                 logger.info("Post was skipped as an advertisement.")
                 continue
-            if config.SKIP_COPYRIGHTED_POST and "copyright" in item:
+            if config.SKIP_COPYRIGHTED_POST and item.get("copyright", None):
                 logger.info("Post was skipped as an copyrighted post.")
                 continue
 
             item_parts = {"post": item}
             group_name = ""
-            if "copy_history" in item and not config.SKIP_REPOSTS:
+            if item.get("copy_history", None) and not config.SKIP_REPOSTS:
                 item_parts["repost"] = item["copy_history"][0]
                 if item_parts["repost"]["owner_id"] < 0:
                     group_name = get_group_name(

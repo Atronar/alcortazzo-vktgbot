@@ -36,7 +36,7 @@ def parse_post(item: dict, repost_exists: bool, item_type: str, group_name: str)
         parse_attachments(item["attachments"], text, urls, videos, photos, docs)
 
     avatar_update = False
-    if photos and "post_source" in item and "data" in item["post_source"] and item["post_source"]["data"]=="profile_photo":
+    if photos and item.get("post_source", {}).get("data", "")=="profile_photo":
        avatar_update = True
 
     text = add_urls_to_text(text, urls, videos)
