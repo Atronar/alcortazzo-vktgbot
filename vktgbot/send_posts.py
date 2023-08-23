@@ -1,11 +1,15 @@
 import asyncio
 import requests
+import os
 
 from aiogram import Bot, types
 from aiogram.utils import exceptions
 from loguru import logger
 
 from tools import split_text, slug_filename
+
+
+MAX_DOC_SIZE = 20971520 # 20 Mb
 
 
 async def send_post(bot: Bot, tg_channel: str, text: str, photos: list, docs: list, num_tries: int = 0, avatar_update: bool = False) -> None:
@@ -84,22 +88,27 @@ async def send_photos_post(bot: Bot, tg_channel: str, text: str, photos: list) -
     logger.info("Text post with photos sent to Telegram.")
 
 
-async def send_docs_post(bot: Bot, tg_channel: str, docs: list, caption: str = None) -> None:
+async def send_docs_post(bot: Bot, tg_channel: str, docs: list, caption: str = "") -> None:
     media = types.MediaGroup()
     opened_docs = []
     for doc in docs:
-        doc_file = open(f"./temp/{slug_filename(doc['title'])}", "rb")
-        opened_docs.append(doc_file)
-        media.attach_document(types.InputMediaDocument(doc_file))
+        doc_filepath = f"./temp/{slug_filename(doc['title'])}"
+        if os.path.getsize(doc_filepath) > MAX_DOC_SIZE:
+            caption = f"{caption}\n{doc['url']}"
+        else:
+            doc_file = open(doc_filepath, "rb")
+            opened_docs.append(doc_file)
+            media.attach_document(types.InputMediaDocument(doc_file))
 
     if caption:
-        if (len(caption) > 0) and (len(caption) <= 1024):
+        if media and (len(caption) > 0) and (len(caption) <= 1024):
             media.media[0].caption = caption
             media.media[0].parse_mode = types.ParseMode.HTML
-        elif len(caption) > 1024:
+        elif not media or len(caption) > 1024:
             await send_text_post(bot, tg_channel, caption)
 
-    await bot.send_media_group(tg_channel, media)
+    if media:
+        await bot.send_media_group(tg_channel, media)
     for doc_file in opened_docs:
         doc_file.close()
     logger.info("Documents sent to Telegram.")
