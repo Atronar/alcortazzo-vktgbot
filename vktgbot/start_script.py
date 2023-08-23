@@ -5,7 +5,7 @@ from loguru import logger
 import asyncio
 
 import config
-from api_requests import get_data_from_vk, get_group_name, get_last_id
+from api_requests import get_data_from_vk, get_user_name, get_group_name, get_last_id
 from last_id import read_id, write_id, read_known_id, write_known_id
 from parse_posts import parse_post
 from send_posts import send_post
@@ -79,11 +79,18 @@ async def start_script():
             group_name = ""
             if "copy_history" in item and not config.SKIP_REPOSTS:
                 item_parts["repost"] = item["copy_history"][0]
-                group_name = get_group_name(
-                    config.VK_TOKEN,
-                    config.REQ_VERSION,
-                    abs(item_parts["repost"]["owner_id"]),
-                )
+                if item_parts["repost"]["owner_id"] < 0:
+                    group_name = get_group_name(
+                        config.VK_TOKEN,
+                        config.REQ_VERSION,
+                        abs(item_parts["repost"]["owner_id"]),
+                    )
+                else:
+                    group_name = get_user_name(
+                        config.VK_TOKEN,
+                        config.REQ_VERSION,
+                        item_parts["repost"]["owner_id"],
+                    )
                 logger.info("Detected repost in the post.")
 
             for item_part in item_parts:
