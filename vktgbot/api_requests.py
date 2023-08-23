@@ -59,9 +59,9 @@ def get_last_id(
         ),
     )
     data = response.json()
-    if "response" in data and data["response"]["items"]:
+    if data.get("response", {}).get("items", None):
         items = data["response"]["items"]
-        if "is_pinned" in items[0]:
+        if items[0].get("is_pinned", False):
             return items[1]["id"]
         return items[0]["id"]
     elif "error" in data:
