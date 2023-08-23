@@ -6,7 +6,7 @@ from loguru import logger
 
 from api_requests import get_video_url
 from config import REQ_VERSION, VK_TOKEN, SHOW_ORIGINAL_POST_LINK
-from tools import add_urls_to_text, prepare_text_for_html, prepare_text_for_reposts, reformat_vk_links
+from tools import add_urls_to_text, prepare_text_for_html, prepare_text_for_reposts, reformat_vk_links, slug_filename
 
 
 def parse_post(item: dict, repost_exists: bool, item_type: str, group_name: str) -> dict:
@@ -104,7 +104,7 @@ def get_doc(doc: dict) -> Union[dict, None]:
     else:
         response = requests.get(doc["url"])
 
-        with open(f'./temp/{doc["title"]}', "wb") as file:
+        with open(f'./temp/{slug_filename(doc["title"])}', "wb") as file:
             file.write(response.content)
 
     return {"title": doc["title"], "url": doc["url"]}
