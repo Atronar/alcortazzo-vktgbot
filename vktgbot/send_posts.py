@@ -16,9 +16,9 @@ async def send_post(bot: Bot, tg_channel: str, text: str, photos: list, docs: li
         if len(photos) == 0:
             await send_text_post(bot, tg_channel, text)
         elif len(photos) == 1:
-            await send_photo_post(bot, tg_channel, text, photos, avatar_update=avatar_update)
+            await send_photo_post(bot, tg_channel, text, photos, avatar_update=avatar_update, force_upload=num_tries > 0)
         elif len(photos) >= 2:
-            await send_photos_post(bot, tg_channel, text, photos)
+            await send_photos_post(bot, tg_channel, text, photos, force_upload=num_tries > 0)
         if docs:
             await send_docs_post(bot, tg_channel, docs)
     except exceptions.TelegramRetryAfter as ex:
@@ -51,11 +51,20 @@ async def send_text_post(bot: Bot, tg_channel: str, text: str) -> None:
     logger.info("Text post sent to Telegram.")
 
 
-async def send_photo_post(bot: Bot, tg_channel: str, text: str, photos: list, avatar_update: bool = False) -> None:
+async def send_photo_post(bot: Bot, tg_channel: str, text: str, photos: list, avatar_update: bool = False, force_upload: bool = False) -> None:
     if avatar_update:
         await bot.set_chat_photo(tg_channel, types.BufferedInputFile(requests.get(photos[0], stream=True).raw, filename="avatar.jpg"))
     if len(text) <= 1024:
-        await bot.send_photo(tg_channel, photos[0], caption=text, parse_mode="HTML")
+        if force_upload:
+            file = types.BufferedInputFile(requests.get(photos[0], stream=True).content, filename='file.jpg')
+            await bot.send_photo(
+                tg_channel,
+                file,
+                caption=text,
+                parse_mode="HTML"
+            )
+        else:
+            await bot.send_photo(tg_channel, photos[0], caption=text, parse_mode="HTML")
         logger.info("Text post (<=1024) with photo sent to Telegram.")
     else:
         prepared_text = f'<a href="{photos[0]}"> </a>{text}'
@@ -67,7 +76,7 @@ async def send_photo_post(bot: Bot, tg_channel: str, text: str, photos: list, av
         logger.info("Text post (>1024) with photo sent to Telegram.")
 
 
-async def send_photos_post(bot: Bot, tg_channel: str, text: str, photos: list) -> None:
+async def send_photos_post(bot: Bot, tg_channel: str, text: str, photos: list, force_upload: bool = False) -> None:
     media: list[types.InputMediaPhoto] = []
     for photo in photos:
         media.append(types.InputMediaPhoto(media=photo))
