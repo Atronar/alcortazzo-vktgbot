@@ -19,7 +19,7 @@ def parse_post(
     text = tools.prepare_text_for_html(post["text"])
     if repost_exists:
         text = tools.prepare_text_for_reposts(text, post, post_type, group_name)
-    if post_type == 'post':
+    if SHOW_ORIGINAL_POST_LINK and post_type == 'post':
         if post["owner_id"] < 0:
             group_name = api_requests.get_group_name(
                 VK_TOKEN,
