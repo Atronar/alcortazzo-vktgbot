@@ -5,7 +5,7 @@ import time
 from loguru import logger
 
 
-def blacklist_check(blacklist: list, text: str) -> bool:
+def blacklist_check(blacklist: list | None, text: str) -> bool:
     if blacklist:
         text_lower = text.lower()
         for black_word in blacklist:
@@ -16,7 +16,7 @@ def blacklist_check(blacklist: list, text: str) -> bool:
     return False
 
 
-def whitelist_check(whitelist: list, text: str) -> bool:
+def whitelist_check(whitelist: list | None, text: str) -> bool:
     if whitelist:
         text_lower = text.lower()
         for white_word in whitelist:

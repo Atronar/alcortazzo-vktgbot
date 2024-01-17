@@ -6,11 +6,11 @@ import asyncio
 import time
 
 import config
-from api_requests import get_data_from_vk, get_user_name, get_group_name, get_last_id
+import api_requests
 from last_id import read_id, write_id, read_known_id, write_known_id
 from parse_posts import parse_post
 from send_posts import send_post
-from tools import blacklist_check, prepare_temp_folder, whitelist_check
+import tools
 
 
 async def start_script():
@@ -20,7 +20,7 @@ async def start_script():
     last_wall_id = read_id()
     logger.info(f"Last check: {time.strftime('%d %b %Y %H:%M:%S', time.localtime(last_unixtime))}")
 
-    items: Union[dict, None] = get_data_from_vk(
+    items: Union[dict, None] = api_requests.get_data_from_vk(
         config.VK_TOKEN,
         int(last_wall_id),
         req_filter = config.REQ_FILTER,
@@ -53,9 +53,9 @@ async def start_script():
             if item.get("is_deleted", False) == True:
                 logger.info(f"Post was deleted: {item['deleted_reason']}.")
                 continue
-            if blacklist_check(config.BLACKLIST, item["text"]):
+            if tools.blacklist_check(config.BLACKLIST, item["text"]):
                 continue
-            if whitelist_check(config.WHITELIST, item["text"]):
+            if tools.whitelist_check(config.WHITELIST, item["text"]):
                 continue
             if config.SKIP_ADS_POSTS and item.get("marked_as_ads", False):
                 logger.info("Post was skipped as an advertisement.")
@@ -70,13 +70,13 @@ async def start_script():
             if item.get("copy_history", None) and not config.SKIP_REPOSTS:
                 item_parts["repost"] = item["copy_history"][0]
                 if item_parts["repost"]["owner_id"] < 0:
-                    group_name = get_group_name(
+                    group_name = api_requests.get_group_name(
                         config.VK_TOKEN,
                         config.REQ_VERSION,
                         abs(item_parts["repost"]["owner_id"]),
                     )
                 else:
-                    group_name = get_user_name(
+                    group_name = api_requests.get_user_name(
                         config.VK_TOKEN,
                         config.REQ_VERSION,
                         item_parts["repost"]["owner_id"],
@@ -84,13 +84,13 @@ async def start_script():
                 logger.info("Detected repost in the post.")
 
             for item_part in item_parts:
-                prepare_temp_folder()
+                tools.prepare_temp_folder()
                 repost_exists: bool = True if len(item_parts) > 1 else False
 
                 logger.info(f"Starting parsing of the {item_part}")
                 parsed_post = parse_post(item_parts[item_part], repost_exists, item_part, group_name)
                 logger.info(f"Starting sending of the {item_part}")
-                
+
                 await send_post(
                         bot,
                         config.TG_CHANNEL,

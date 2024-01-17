@@ -45,7 +45,10 @@ def get_data_from_vk(
 
 
 def get_last_id(
-    vk_token: str, req_version: float, vk_domain: str, req_filter: str
+    vk_token: str,
+    req_version: float,
+    vk_domain: str,
+    req_filter: str
 ) -> Union[int, None]:
     logger.info("Trying to get posts from VK.")
 
@@ -78,7 +81,13 @@ def get_last_id(
     return None
 
 
-def get_video_url(vk_token: str, req_version: float, owner_id: str, video_id: str, access_key: str) -> str:
+def get_video_url(
+    vk_token: str,
+    req_version: float,
+    owner_id: str,
+    video_id: str,
+    access_key: str
+) -> str:
     response = requests.get(
         "https://api.vk.com/method/video.get",
         params={

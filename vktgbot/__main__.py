@@ -12,31 +12,32 @@ from loguru import logger
 
 from config import SINGLE_START
 from start_script import start_script
-from tools import prepare_temp_folder
+import tools
 
 logger.add(
     "./logs/debug.log",
     format="{time} {level} {message}",
     level="DEBUG",
     rotation="1 week",
+    retention="1 month",
     compression="zip",
 )
 
 logger.info("Script is started.")
 
 
-@logger.catch
+@logger.catch(reraise=True)
 def main():
     asyncio.run(start_script())
-    prepare_temp_folder()
+    tools.prepare_temp_folder()
 
-
-while True:
-    try:
-        main()
-        if SINGLE_START:
-            logger.info("Script has successfully completed its execution")
+if __name__ == "__main__":
+    while True:
+        try:
+            main()
+            if SINGLE_START:
+                logger.info("Script has successfully completed its execution")
+                exit()
+        except KeyboardInterrupt:
+            logger.info("Script is stopped by the user.")
             exit()
-    except KeyboardInterrupt:
-        logger.info("Script is stopped by the user.")
-        exit()
