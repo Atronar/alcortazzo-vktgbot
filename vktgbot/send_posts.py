@@ -116,7 +116,14 @@ async def send_photos_post(
 ) -> None:
     media: list[types.InputMediaPhoto] = []
     for photo in photos:
-        media.append(types.InputMediaPhoto(media=photo, parse_mode=ParseMode.HTML))
+        if force_upload:
+            file = types.BufferedInputFile(
+                requests.get(photo, stream=True).content,
+                filename='file.jpg'
+            )
+            media.append(types.InputMediaPhoto(media=file, parse_mode=ParseMode.HTML))
+        else:
+            media.append(types.InputMediaPhoto(media=photo, parse_mode=ParseMode.HTML))
 
     if (len(text) > 0) and (len(text) <= 1024):
         media[0].caption = text
