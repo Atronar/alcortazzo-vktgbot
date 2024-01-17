@@ -4,47 +4,54 @@ from typing import Union
 import requests
 from loguru import logger
 
-from api_requests import get_video_url
+import api_requests
 from config import REQ_VERSION, VK_TOKEN, SHOW_ORIGINAL_POST_LINK, SHOW_COPYRIGHT_POST_LINK
-from tools import add_urls_to_text, prepare_text_for_html, prepare_text_for_reposts, reformat_vk_links, slug_filename
+import tools
 
 
-def parse_post(item: dict, repost_exists: bool, item_type: str, group_name: str) -> dict:
-    text = prepare_text_for_html(item["text"])
+def parse_post(
+    post: dict,
+    repost_exists: bool,
+    post_type: str,
+    group_name: str
+) -> dict:
+    text = tools.prepare_text_for_html(post["text"])
     post_link_text = ''
     if repost_exists:
-        text = prepare_text_for_reposts(text, item, item_type, group_name)
+        text = tools.prepare_text_for_reposts(text, post, post_type, group_name)
     elif SHOW_ORIGINAL_POST_LINK:
-        post_link = f'https://vk.com/wall{item["owner_id"]}_{item["id"]}'
+        post_link = f'https://vk.com/wall{post["owner_id"]}_{post["id"]}'
         text = f'<a href="{post_link}"><b>Original post</b></a>\n\n{text}'
 
     if SHOW_COPYRIGHT_POST_LINK:
-        copyright_link = item.get("copyright", {}).get("link", "")
-        copyright_name = item.get("copyright", {}).get("name", copyright_link)
+        copyright_link = post.get("copyright", {}).get("link", "")
+        copyright_name = post.get("copyright", {}).get("name", copyright_link)
         if copyright_link:
             text = f'{text}\n\n' \
                    f'<a href="{copyright_link}">{copyright_name}</a>'
 
-    text = reformat_vk_links(text)
+    text = tools.reformat_vk_links(text)
 
     urls: list = []
     videos: list = []
     photos: list = []
     docs: list = []
 
-    if "attachments" in item:
-        parse_attachments(item["attachments"], text, urls, videos, photos, docs)
+    if "attachments" in post:
+        parse_attachments(post["attachments"], text, urls, videos, photos, docs)
 
     avatar_update = False
-    if photos and item.get("post_source", {}).get("data", "")=="profile_photo":
+    if photos and post.get("post_source", {}).get("data", "")=="profile_photo":
        avatar_update = True
 
-    text = add_urls_to_text(text, urls, videos)
-    logger.info(f"{item_type.capitalize()} parsing is complete.")
+    text = tools.add_urls_to_text(text, urls, videos)
+    logger.info(f"{post_type.capitalize()} parsing is complete.")
     return {"text": text, "photos": photos, "docs": docs, "avatar_update": avatar_update}
 
 
-def parse_attachments(attachments, text, urls, videos, photos, docs):
+def parse_attachments(
+    attachments, text, urls, videos, photos, docs
+):
     for attachment in attachments:
         if attachment["type"] == "link":
             url = get_url(attachment, text)
@@ -75,7 +82,7 @@ def get_video(attachment: dict) -> str:
     video_type = attachment["video"]["type"]
     access_key = attachment["video"].get("access_key", "")
 
-    video = get_video_url(VK_TOKEN, REQ_VERSION, owner_id, video_id, access_key)
+    video = api_requests.get_video_url(VK_TOKEN, REQ_VERSION, owner_id, video_id, access_key)
     if video:
         return video
     elif video_type == "short_video":
@@ -111,7 +118,7 @@ def get_doc(doc: dict) -> Union[dict, None]:
     else:
         response = requests.get(doc["url"])
 
-        with open(f'./temp/{slug_filename(doc["title"])}', "wb") as file:
+        with open(f'./temp/{tools.slug_filename(doc["title"])}', "wb") as file:
             file.write(response.content)
 
     return {"title": doc["title"], "url": doc["url"]}
