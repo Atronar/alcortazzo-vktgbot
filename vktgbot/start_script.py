@@ -33,7 +33,7 @@ async def start_script():
     if not items:
         new_last_unixtime: int = max(int(time.time()) - 60, last_unixtime)
         write_known_id(new_last_unixtime)
-        
+
         await bot.session.close()
         logger.info(f"Script went to sleep for {config.TIME_TO_SLEEP} seconds.")
         await asyncio.sleep(config.TIME_TO_SLEEP)
@@ -98,7 +98,7 @@ async def start_script():
                         parsed_post["photos"],
                         parsed_post["docs"],
                 )
-                
+
             write_known_id(item["date"])
             write_id(item["source_id"])
     await bot.session.close()
