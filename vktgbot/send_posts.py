@@ -133,8 +133,15 @@ async def send_docs_post(bot: Bot, tg_channel: str, docs: list, caption: str = "
         if os.path.getsize(doc_filepath) > MAX_DOC_SIZE:
             caption = f"{caption}\n{doc['url']}"
         else:
-            with open(doc_filepath, "rb") as doc_file:
-                media.append(types.InputMediaDocument(media = types.BufferedInputFile(doc_file.read(), doc['title'])))
+            media.append(
+                types.InputMediaDocument(
+                    media = types.FSInputFile(
+                        doc_filepath,
+                        filename=doc['title']
+                    ),
+                    parse_mode = ParseMode.HTML
+                )
+            )
 
     if caption:
         if media and (len(caption) > 0) and (len(caption) <= 1024):
