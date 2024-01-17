@@ -28,7 +28,7 @@ def start_script():
             config.REQ_FILTER
         )
         if last_wall_id:
-           write_id(last_wall_id)
+            write_id(last_wall_id)
         return
 
     items: Union[dict, None] = api_requests.get_data_from_vk(
@@ -41,7 +41,7 @@ def start_script():
     if not items:
         new_last_id: int = int(last_known_id)+config.REQ_COUNT
         write_known_id(new_last_id)
-        
+
         return 1
 
     logger.info(f"Got a few posts with IDs: {items[0]['id']} - {items[-1]['id']}.")
@@ -54,7 +54,7 @@ def start_script():
             if item["id"] <= last_known_id:
                 continue
             logger.info(f"Working with post with ID: {item['id']}.")
-            if item.get("is_deleted", False) == True:
+            if item.get("is_deleted", False) is True:
                 logger.info(f"Post was deleted: {item['deleted_reason']}.")
                 continue
             if tools.blacklist_check(config.BLACKLIST, item["text"]):
@@ -86,13 +86,18 @@ def start_script():
                     )
                 logger.info("Detected repost in the post.")
 
-            for item_part in item_parts:
+            for item_part_key, item_part in item_parts.items():
                 tools.prepare_temp_folder()
-                repost_exists: bool = True if len(item_parts) > 1 else False
+                repost_exists = len(item_parts) > 1
 
-                logger.info(f"Starting parsing of the {item_part}")
-                parsed_post = parse_post(item_parts[item_part], repost_exists, item_part, group_name)
-                logger.info(f"Starting sending of the {item_part}")
+                logger.info(f"Starting parsing of the {item_part_key}")
+                parsed_post = parse_post(
+                    item_part,
+                    repost_exists,
+                    item_part_key,
+                    group_name
+                )
+                logger.info(f"Starting sending of the {item_part_key}")
                 executor.start(
                     dp,
                     send_post(

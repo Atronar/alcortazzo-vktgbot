@@ -28,15 +28,21 @@ def get_data_from_vk(
             {
                 "access_token": vk_token,
                 "v": req_version,
-                "posts": ','.join(f"{owner_id}_{req_post_id}" for req_post_id in range(req_start_post_id, req_start_post_id+req_count)),
+                "posts": ','.join(
+                    f"{owner_id}_{req_post_id}"
+                    for req_post_id in range(req_start_post_id, req_start_post_id+req_count)
+                ),
             },
         ),
     )
-    data = response.json()
+    data: dict = response.json()
     if "response" in data:
         return data["response"]
-    elif "error" in data:
-        logger.error("Error was detected when requesting data from VK: " f"{data['error']['error_msg']}")
+    if "error" in data:
+        logger.error(
+            "Error was detected when requesting data from VK: "
+            f"{data['error']['error_msg']}"
+        )
     return None
 
 
@@ -72,8 +78,11 @@ def get_last_id(
         if items[0].get("is_pinned", False):
             return items[1]["id"]
         return items[0]["id"]
-    elif "error" in data:
-        logger.error("Error was detected when requesting data from VK: " f"{data['error']['error_msg']}")
+    if "error" in data:
+        logger.error(
+            "Error was detected when requesting data from VK: "
+            f"{data['error']['error_msg']}"
+        )
     return None
 
 
@@ -94,12 +103,17 @@ def get_video_url(
     )
     data = response.json()
     if "response" in data:
-        return data["response"] \
-            .get("items", [{}])[0] \
-            .get("files", {}) \
+        return (
+            data["response"]
+            .get("items", [{}])[0]
+            .get("files", {})
             .get("external", "")
-    elif "error" in data:
-        logger.error(f"Error was detected when requesting data from VK: {data['error']['error_msg']}")
+        )
+    if "error" in data:
+        logger.error(
+            "Error was detected when requesting data from VK: "
+            f"{data['error']['error_msg']}"
+        )
     return ""
 
 
@@ -115,8 +129,11 @@ def get_user_name(vk_token: str, req_version: float, owner_id) -> str:
     data = response.json()
     if "response" in data:
         return f'{data["response"][0]["first_name"]} {data["response"][0]["last_name"]}'
-    elif "error" in data:
-        logger.error(f"Error was detected when requesting data from VK: {data['error']['error_msg']}")
+    if "error" in data:
+        logger.error(
+            "Error was detected when requesting data from VK: "
+            f"{data['error']['error_msg']}"
+        )
     return ""
 
 
@@ -132,8 +149,11 @@ def get_group_name(vk_token: str, req_version: float, owner_id) -> str:
     data = response.json()
     if "response" in data:
         return data["response"][0]["name"]
-    elif "error" in data:
-        logger.error(f"Error was detected when requesting data from VK: {data['error']['error_msg']}")
+    if "error" in data:
+        logger.error(
+            "Error was detected when requesting data from VK: "
+            f"{data['error']['error_msg']}"
+        )
     return ""
 
 
@@ -149,6 +169,9 @@ def get_group_id(vk_token: str, req_version: float, domain) -> int | None:
     data = response.json()
     if "response" in data:
         return data["response"][0]["id"]
-    elif "error" in data:
-        logger.error(f"Error was detected when requesting data from VK: {data['error']['error_msg']}")
+    if "error" in data:
+        logger.error(
+            "Error was detected when requesting data from VK: "
+            f"{data['error']['error_msg']}"
+        )
     return None

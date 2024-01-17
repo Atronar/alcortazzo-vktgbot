@@ -1,6 +1,6 @@
 import asyncio
-import requests
 import os
+import requests
 
 from aiogram import Bot, types
 from aiogram.utils import exceptions
@@ -16,8 +16,8 @@ async def send_post(
     bot: Bot,
     tg_channel: str,
     text: str,
-    photos: list,
-    docs: list,
+    photos: list[str],
+    docs: list[dict[str, str]],
     num_tries: int = 0,
     avatar_update: bool = False
 ) -> None:
@@ -37,7 +37,11 @@ async def send_post(
         elif docs:
             await send_docs_post(bot, tg_channel, docs)
     except exceptions.RetryAfter as ex:
-        logger.warning(f"Flood limit is exceeded. Sleep {ex.timeout + 10} seconds. Try: {num_tries}")
+        logger.warning(
+            "Flood limit is exceeded. "
+            f"Sleep {ex.timeout + 10} seconds. "
+            f"Try: {num_tries}"
+        )
         await asyncio.sleep(ex.timeout + 10)
         await send_post(bot, tg_channel, text, photos, docs, num_tries)
     except exceptions.BadRequest as ex:
@@ -70,7 +74,7 @@ async def send_photo_post(
     bot: Bot,
     tg_channel: str,
     text: str,
-    photos: list,
+    photos: list[str],
     avatar_update: bool = False
 ) -> None:
     if avatar_update:
@@ -94,7 +98,7 @@ async def send_photo_post(
         logger.info("Text post (>1024) with photo sent to Telegram.")
 
 
-async def send_photos_post(bot: Bot, tg_channel: str, text: str, photos: list) -> None:
+async def send_photos_post(bot: Bot, tg_channel: str, text: str, photos: list[str]) -> None:
     media = types.MediaGroup()
     for photo in photos:
         media.attach_photo(types.InputMediaPhoto(photo))
@@ -108,7 +112,12 @@ async def send_photos_post(bot: Bot, tg_channel: str, text: str, photos: list) -
     logger.info("Text post with photos sent to Telegram.")
 
 
-async def send_docs_post(bot: Bot, tg_channel: str, docs: list, caption: str = "") -> None:
+async def send_docs_post(
+    bot: Bot,
+    tg_channel: str,
+    docs: list[dict[str, str]],
+    caption: str = ""
+) -> None:
     media = types.MediaGroup()
     opened_docs = []
     for doc in docs:

@@ -6,6 +6,7 @@ v3.1
 by @alcortazzo
 """
 
+import sys
 import time
 
 from loguru import logger
@@ -38,14 +39,14 @@ if __name__ == "__main__":
             exit_code = main()
             if SINGLE_START:
                 logger.info("Script has successfully completed its execution")
-                exit()
+                sys.exit()
             else:
                 if exit_code == 1:
-                   logger.info(f"Script went to sleep for {SHORT_TIME_TO_SLEEP} seconds.")
-                   time.sleep(SHORT_TIME_TO_SLEEP)
+                    logger.info(f"Script went to sleep for {SHORT_TIME_TO_SLEEP} seconds.")
+                    time.sleep(SHORT_TIME_TO_SLEEP)
                 else:
-                   logger.info(f"Script went to sleep for {TIME_TO_SLEEP} seconds.")
-                   time.sleep(TIME_TO_SLEEP)
+                    logger.info(f"Script went to sleep for {TIME_TO_SLEEP} seconds.")
+                    time.sleep(TIME_TO_SLEEP)
         except KeyboardInterrupt:
             logger.info("Script is stopped by the user.")
-            exit()
+            sys.exit()
