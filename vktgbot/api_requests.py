@@ -9,7 +9,6 @@ def get_data_from_vk(
     vk_token: str,
     req_version: float,
     vk_domain: str,
-    req_filter: str,
     req_count: int,
     req_start_post_id: int
 ) -> Union[dict, None]:

@@ -37,7 +37,6 @@ async def start_script():
         config.VK_TOKEN,
         config.REQ_VERSION,
         config.VK_DOMAIN,
-        config.REQ_FILTER,
         config.REQ_COUNT,
         int(last_known_id)+1
     )
