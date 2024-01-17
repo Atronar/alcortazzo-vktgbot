@@ -35,9 +35,8 @@ def start_script():
         config.VK_TOKEN,
         config.REQ_VERSION,
         config.VK_DOMAIN,
-        config.REQ_FILTER,
-        config.REQ_COUNT,
-        int(last_known_id)+1
+        req_count=config.REQ_COUNT,
+        req_start_post_id=int(last_known_id)+1
     )
     if not items:
         new_last_id: int = int(last_known_id)+config.REQ_COUNT
