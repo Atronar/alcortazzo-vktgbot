@@ -37,8 +37,8 @@ async def send_post(
         elif docs:
             await send_docs_post(bot, tg_channel, docs)
     except exceptions.RetryAfter as ex:
-        logger.warning(f"Flood limit is exceeded. Sleep {ex.timeout} seconds. Try: {num_tries}")
-        await asyncio.sleep(ex.timeout)
+        logger.warning(f"Flood limit is exceeded. Sleep {ex.timeout + 10} seconds. Try: {num_tries}")
+        await asyncio.sleep(ex.timeout + 10)
         await send_post(bot, tg_channel, text, photos, docs, num_tries)
     except exceptions.BadRequest as ex:
         logger.warning(f"Bad request. Wait 60 seconds. Try: {num_tries}. {ex}")
