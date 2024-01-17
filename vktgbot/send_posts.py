@@ -1,6 +1,6 @@
 import asyncio
-import requests
 import os
+import requests
 
 from aiogram import Bot, types, exceptions
 from aiogram.enums.parse_mode import ParseMode
@@ -16,8 +16,8 @@ async def send_post(
     bot: Bot,
     tg_channel: str,
     text: str,
-    photos: list,
-    docs: list,
+    photos: list[str],
+    docs: list[dict[str, str]],
     num_tries: int = 0,
     avatar_update: bool = False
 ) -> None:
@@ -29,7 +29,14 @@ async def send_post(
         if len(photos) == 0 and len(docs) == 0:
             await send_text_post(bot, tg_channel, text)
         elif len(photos) == 1:
-            await send_photo_post(bot, tg_channel, text, photos, avatar_update=avatar_update, force_upload=num_tries > 0)
+            await send_photo_post(
+                bot,
+                tg_channel,
+                text,
+                photos,
+                avatar_update=avatar_update,
+                force_upload=num_tries > 0
+            )
         elif len(photos) >= 2:
             await send_photos_post(bot, tg_channel, text, photos, force_upload=num_tries > 0)
         if docs and len(photos) == 0:
@@ -37,7 +44,11 @@ async def send_post(
         elif docs:
             await send_docs_post(bot, tg_channel, docs)
     except exceptions.TelegramRetryAfter as ex:
-        logger.warning(f"Flood limit is exceeded. Sleep {ex.retry_after + 10} seconds. Try: {num_tries}")
+        logger.warning(
+            "Flood limit is exceeded. "
+            f"Sleep {ex.retry_after + 10} seconds. "
+            f"Try: {num_tries}"
+        )
         await asyncio.sleep(ex.retry_after + 10)
         await send_post(bot, tg_channel, text, photos, docs, num_tries)
     except exceptions.TelegramBadRequest as ex:
@@ -70,7 +81,7 @@ async def send_photo_post(
     bot: Bot,
     tg_channel: str,
     text: str,
-    photos: list,
+    photos: list[str],
     avatar_update: bool = False,
     force_upload: bool = False
 ) -> None:
@@ -95,7 +106,12 @@ async def send_photo_post(
                 parse_mode=ParseMode.HTML
             )
         else:
-            await bot.send_photo(tg_channel, photos[0], caption=text, parse_mode=ParseMode.HTML)
+            await bot.send_photo(
+                tg_channel,
+                photos[0],
+                caption=text,
+                parse_mode=ParseMode.HTML
+            )
         logger.info("Text post (<=1024) with photo sent to Telegram.")
     else:
         prepared_text = f'<a href="{photos[0]}"> </a>{text}'
@@ -111,7 +127,7 @@ async def send_photos_post(
     bot: Bot,
     tg_channel: str,
     text: str,
-    photos: list,
+    photos: list[str],
     force_upload: bool = False
 ) -> None:
     media: list[types.InputMediaPhoto] = []
@@ -133,7 +149,12 @@ async def send_photos_post(
     logger.info("Text post with photos sent to Telegram.")
 
 
-async def send_docs_post(bot: Bot, tg_channel: str, docs: list, caption: str = "") -> None:
+async def send_docs_post(
+    bot: Bot,
+    tg_channel: str,
+    docs: list[dict[str, str]],
+    caption: str = ""
+) -> None:
     media = []
     for doc in docs:
         doc_filepath = f"./temp/{tools.slug_filename(doc['title'])}"

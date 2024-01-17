@@ -1,5 +1,5 @@
 import re
-from typing import Union
+from typing import Iterable, Union
 
 import requests
 from loguru import logger
@@ -14,9 +14,8 @@ def parse_post(
     repost_exists: bool,
     post_type: str,
     group_name: str
-) -> dict:
+) -> dict[str, str|list[str|dict[str, str]]]:
     text = tools.prepare_text_for_html(post["text"])
-    post_link_text = ''
     if repost_exists:
         text = tools.prepare_text_for_reposts(text, post, post_type, group_name)
     elif SHOW_ORIGINAL_POST_LINK:
@@ -27,22 +26,24 @@ def parse_post(
         copyright_link = post.get("copyright", {}).get("link", "")
         copyright_name = post.get("copyright", {}).get("name", copyright_link)
         if copyright_link:
-            text = f'{text}\n\n' \
-                   f'<a href="{copyright_link}">{copyright_name}</a>'
+            text = (
+                f'{text}\n\n'
+                f'<a href="{copyright_link}">{copyright_name}</a>'
+            )
 
     text = tools.reformat_vk_links(text)
 
-    urls: list = []
-    videos: list = []
-    photos: list = []
-    docs: list = []
+    urls: list[str] = []
+    videos: list[str] = []
+    photos: list[str] = []
+    docs: list[dict[str, str]] = []
 
     if "attachments" in post:
         parse_attachments(post["attachments"], text, urls, videos, photos, docs)
 
     avatar_update = False
     if photos and post.get("post_source", {}).get("data", "")=="profile_photo":
-       avatar_update = True
+        avatar_update = True
 
     text = tools.add_urls_to_text(text, urls, videos)
     logger.info(f"{post_type.capitalize()} parsing is complete.")
@@ -50,7 +51,12 @@ def parse_post(
 
 
 def parse_attachments(
-    attachments, text, urls, videos, photos, docs
+    attachments: Iterable[dict[str]],
+    text: str,
+    urls: list[str],
+    videos: list[str],
+    photos: list[str],
+    docs: list[dict[str, str]]
 ):
     for attachment in attachments:
         if attachment["type"] == "link":
@@ -71,12 +77,12 @@ def parse_attachments(
                 docs.append(doc)
 
 
-def get_url(attachment: dict, text: str) -> Union[str, None]:
-    url = attachment["link"]["url"]
+def get_url(attachment: dict[str, dict[str, str]], text: str) -> Union[str, None]:
+    url = attachment.get("link", {}).get("url", "")
     return url if url not in text else None
 
 
-def get_video(attachment: dict) -> str:
+def get_video(attachment: dict[str, dict[str, str]]) -> str:
     owner_id = attachment["video"]["owner_id"]
     video_id = attachment["video"]["id"]
     video_type = attachment["video"]["type"]
@@ -85,13 +91,12 @@ def get_video(attachment: dict) -> str:
     video = api_requests.get_video_url(VK_TOKEN, REQ_VERSION, owner_id, video_id, access_key)
     if video:
         return video
-    elif video_type == "short_video":
+    if video_type == "short_video":
         return f"https://vk.com/clip{owner_id}_{video_id}"
-    else:
-        return f"https://vk.com/video{owner_id}_{video_id}"
+    return f"https://vk.com/video{owner_id}_{video_id}"
 
 
-def get_photo(attachment: dict) -> Union[str, None]:
+def get_photo(attachment: dict[str, dict[str, list[dict[str, str]]]]) -> Union[str, None]:
     sizes = attachment["photo"]["sizes"]
     types = ["w", "z", "y", "x", "r", "q", "p", "o", "m", "s"]
 
@@ -107,18 +112,20 @@ def get_photo(attachment: dict) -> Union[str, None]:
                     (item for item in sizes if item["type"] == type_)
                 )["url"],
             )
-    else:
-        return None
+    return None
 
 
-def get_doc(doc: dict) -> Union[dict, None]:
+def get_doc(doc: dict[str, str|int]) -> Union[dict[str, str], None]:
     if doc["size"] > 50000000:
-        logger.info(f"The document was skipped due to its size exceeding the 50MB limit: {doc['size']=}.")
+        logger.info(
+            "The document was skipped due to its size exceeding the 50MB limit: "
+            f"{doc['size']=}."
+        )
         return None
-    else:
-        response = requests.get(doc["url"])
 
-        with open(f'./temp/{tools.slug_filename(doc["title"])}', "wb") as file:
-            file.write(response.content)
+    response = requests.get(doc["url"])
+
+    with open(f'./temp/{tools.slug_filename(doc["title"])}', "wb") as file:
+        file.write(response.content)
 
     return {"title": doc["title"], "url": doc["url"]}

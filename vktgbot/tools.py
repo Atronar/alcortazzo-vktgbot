@@ -9,7 +9,10 @@ def blacklist_check(blacklist: list | None, text: str) -> bool:
         text_lower = text.lower()
         for black_word in blacklist:
             if black_word.lower() in text_lower:
-                logger.info(f"Post was skipped due to the detection of blacklisted word: {black_word}.")
+                logger.info(
+                    "Post was skipped due to the detection of blacklisted word: "
+                    f"{black_word}."
+                )
                 return True
 
     return False
@@ -29,7 +32,7 @@ def whitelist_check(whitelist: list | None, text: str) -> bool:
 
 def prepare_temp_folder():
     if "temp" in os.listdir():
-        for root, dirs, files in os.walk("temp"):
+        for root, _, files in os.walk("temp"):
             for file in files:
                 os.remove(os.path.join(root, file))
     else:
@@ -39,20 +42,26 @@ def prepare_temp_folder():
 def prepare_text_for_reposts(text: str, item: dict, item_type: str, group_name: str) -> str:
     if item_type == "post" and text:
         from_id = item["copy_history"][0]["from_id"]
-        id = item["copy_history"][0]["id"]
-        link_to_repost = f"https://vk.com/wall{from_id}_{id}"
+        post_id = item["copy_history"][0]["id"]
+        link_to_repost = f"https://vk.com/wall{from_id}_{post_id}"
         text = f'{text}\n\n<a href="{link_to_repost}"><b>REPOST ↓ {group_name}</b></a>'
     if item_type == "repost":
         from_id = item["from_id"]
-        id = item["id"]
-        link_to_repost = f"https://vk.com/wall{from_id}_{id}"
+        post_id = item["id"]
+        link_to_repost = f"https://vk.com/wall{from_id}_{post_id}"
         text = f'<a href="{link_to_repost}"><b>REPOST ↓ {group_name}</b></a>\n\n{text}'
 
     return text
 
 
 def prepare_text_for_html(text: str) -> str:
-    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+    return (
+        text
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+    )
 
 
 def add_urls_to_text(text: str, urls: list, videos: list) -> str:
@@ -87,7 +96,11 @@ def reformat_vk_links(text: str) -> str:
         matching_text = text[match.span()[0] : match.span()[1]]
 
         link_domain, link_text = re.findall(r"\[(.+?)\|(.+?)\]", matching_text)[0]
-        text = left_text + f"""<a href="{f'https://vk.com/{link_domain}'}">{link_text}</a>""" + right_text
+        text = (
+            left_text +
+            f"""<a href="{f'https://vk.com/{link_domain}'}">{link_text}</a>"""
+            + right_text
+        )
         match = re.search(r"\[([\w.:/]+?)\|(.+?)\]", text)
 
     return text
