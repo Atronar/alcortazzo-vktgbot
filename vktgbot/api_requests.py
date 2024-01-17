@@ -9,8 +9,9 @@ def get_data_from_vk(
     vk_token: str,
     req_version: float,
     vk_domain: str,
-    req_count: int,
-    req_start_post_id: int
+    *,
+    req_count: int = 100,
+    req_start_post_id: int = 1
 ) -> Union[dict, None]:
     logger.info("Trying to get posts from VK.")
 
