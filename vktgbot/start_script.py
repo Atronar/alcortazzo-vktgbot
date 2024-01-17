@@ -1,9 +1,9 @@
 from typing import Union
+import time
+import asyncio
 
 from aiogram import Bot
 from loguru import logger
-import asyncio
-import time
 
 import config
 import api_requests
@@ -39,7 +39,10 @@ async def start_script():
         await asyncio.sleep(config.TIME_TO_SLEEP)
         return
 
-    logger.info(f"Got a few posts with IDs: {items[-1]['source_id']}_{items[-1]['id']} - {items[0]['source_id']}_{items[0]['id']}.")
+    logger.info(
+        "Got a few posts with IDs: "
+        f"{items[-1]['source_id']}_{items[-1]['id']} - {items[0]['source_id']}_{items[0]['id']}."
+    )
 
     new_last_unixtime: int = items[0]["date"]
     new_last_wall_id: int = items[0]["source_id"]
@@ -50,7 +53,7 @@ async def start_script():
             if item["date"] <= last_unixtime:
                 continue
             logger.info(f"Working with post with ID: {item['source_id']}_{item['id']}.")
-            if item.get("is_deleted", False) == True:
+            if item.get("is_deleted", False) is True:
                 logger.info(f"Post was deleted: {item['deleted_reason']}.")
                 continue
             if tools.blacklist_check(config.BLACKLIST, item["text"]):
@@ -83,13 +86,18 @@ async def start_script():
                     )
                 logger.info("Detected repost in the post.")
 
-            for item_part in item_parts:
+            for item_part_key, item_part in item_parts.items():
                 tools.prepare_temp_folder()
-                repost_exists: bool = True if len(item_parts) > 1 else False
+                repost_exists = len(item_parts) > 1
 
-                logger.info(f"Starting parsing of the {item_part}")
-                parsed_post = parse_post(item_parts[item_part], repost_exists, item_part, group_name)
-                logger.info(f"Starting sending of the {item_part}")
+                logger.info(f"Starting parsing of the {item_part_key}")
+                parsed_post = parse_post(
+                    item_part,
+                    repost_exists,
+                    item_part_key,
+                    group_name
+                )
+                logger.info(f"Starting sending of the {item_part_key}")
 
                 await send_post(
                         bot,

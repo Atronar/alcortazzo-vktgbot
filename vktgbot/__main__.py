@@ -7,6 +7,7 @@ by @alcortazzo
 """
 
 import asyncio
+import sys
 
 from loguru import logger
 
@@ -37,7 +38,7 @@ if __name__ == "__main__":
             main()
             if SINGLE_START:
                 logger.info("Script has successfully completed its execution")
-                exit()
+                sys.exit()
         except KeyboardInterrupt:
             logger.info("Script is stopped by the user.")
-            exit()
+            sys.exit()
