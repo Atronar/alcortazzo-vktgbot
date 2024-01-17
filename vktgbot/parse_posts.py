@@ -14,7 +14,7 @@ def parse_post(
     repost_exists: bool,
     post_type: str,
     group_name: str
-) -> dict[str, str|list[str|dict[str, str]]]:
+) -> dict[str, str|list[str|dict[str, str]]|bool]:
     text = tools.prepare_text_for_html(post["text"])
     if repost_exists:
         text = tools.prepare_text_for_reposts(text, post, post_type, group_name)
