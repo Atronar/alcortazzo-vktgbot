@@ -7,7 +7,6 @@ from loguru import logger
 
 def get_data_from_vk(
     vk_token: str,
-    last_wall_owner_id: int,
     *,
     req_filter: str | None = None,
     return_banned: int | None = None,

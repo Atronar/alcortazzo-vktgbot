@@ -22,7 +22,6 @@ async def start_script():
 
     items: Union[dict, None] = api_requests.get_data_from_vk(
         config.VK_TOKEN,
-        int(last_wall_id),
         req_filter = config.REQ_FILTER,
         return_banned = config.REQ_RETURN_BANNED,
         start_time = int(last_unixtime),
