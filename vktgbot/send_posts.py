@@ -6,13 +6,21 @@ from aiogram import Bot, types
 from aiogram.utils import exceptions
 from loguru import logger
 
-from tools import split_text, slug_filename
+import tools
 
 
 MAX_DOC_SIZE = 20971520 # 20 Mb
 
 
-async def send_post(bot: Bot, tg_channel: str, text: str, photos: list, docs: list, num_tries: int = 0, avatar_update: bool = False) -> None:
+async def send_post(
+    bot: Bot,
+    tg_channel: str,
+    text: str,
+    photos: list,
+    docs: list,
+    num_tries: int = 0,
+    avatar_update: bool = False
+) -> None:
     num_tries += 1
     if num_tries > 3:
         logger.error("Post was not sent to Telegram. Too many tries.")
@@ -45,7 +53,7 @@ async def send_text_post(bot: Bot, tg_channel: str, text: str) -> None:
     if len(text) < 4096:
         await bot.send_message(tg_channel, text, parse_mode=types.ParseMode.HTML)
     else:
-        text_parts = split_text(text, 4084)
+        text_parts = tools.split_text(text, 4084)
         prepared_text_parts = (
             [text_parts[0] + " (...)"]
             + ["(...) " + part + " (...)" for part in text_parts[1:-1]]
@@ -58,9 +66,21 @@ async def send_text_post(bot: Bot, tg_channel: str, text: str) -> None:
     logger.info("Text post sent to Telegram.")
 
 
-async def send_photo_post(bot: Bot, tg_channel: str, text: str, photos: list, avatar_update: bool = False) -> None:
+async def send_photo_post(
+    bot: Bot,
+    tg_channel: str,
+    text: str,
+    photos: list,
+    avatar_update: bool = False
+) -> None:
     if avatar_update:
-        await bot.set_chat_photo(tg_channel, types.InputFile(requests.get(photos[0], stream=True).raw, filename="avatar.jpg"))
+        await bot.set_chat_photo(
+            tg_channel,
+            types.InputFile(
+                requests.get(photos[0], stream=True).raw,
+                filename="avatar.jpg"
+            )
+        )
     if len(text) <= 1024:
         await bot.send_photo(tg_channel, photos[0], text, parse_mode=types.ParseMode.HTML)
         logger.info("Text post (<=1024) with photo sent to Telegram.")
@@ -92,7 +112,7 @@ async def send_docs_post(bot: Bot, tg_channel: str, docs: list, caption: str = "
     media = types.MediaGroup()
     opened_docs = []
     for doc in docs:
-        doc_filepath = f"./temp/{slug_filename(doc['title'])}"
+        doc_filepath = f"./temp/{tools.slug_filename(doc['title'])}"
         if os.path.getsize(doc_filepath) > MAX_DOC_SIZE:
             caption = f"{caption}\n{doc['url']}"
         else:
