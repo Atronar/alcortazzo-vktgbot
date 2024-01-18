@@ -51,7 +51,7 @@ async def send_post(
         )
         await asyncio.sleep(ex.retry_after + 10)
         await send_post(bot, tg_channel, text, photos, docs, num_tries)
-    except exceptions.TelegramBadRequest as ex:
+    except (exceptions.TelegramBadRequest, exceptions.TelegramServerError) as ex:
         logger.warning(f"Bad request. Wait 60 seconds. Try: {num_tries}. {ex}")
         await asyncio.sleep(60)
         await send_post(bot, tg_channel, text, photos, docs, num_tries)
