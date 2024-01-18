@@ -1,11 +1,21 @@
 import os
 import re
+import shutil
 import time
 
 from loguru import logger
 
 
 def blacklist_check(blacklist: list | None, text: str) -> bool:
+    """Checks if the text contains blacklisted words.
+
+    Args:
+        blacklist (list | None): List of blacklisted words.
+        text (str): Text to check.
+
+    Returns:
+        bool: True if the text contains blacklisted words, False otherwise.
+    """
     if blacklist:
         text_lower = text.lower()
         for black_word in blacklist:
@@ -20,6 +30,15 @@ def blacklist_check(blacklist: list | None, text: str) -> bool:
 
 
 def whitelist_check(whitelist: list | None, text: str) -> bool:
+    """Checks if the text contains whitelisted words.
+
+    Args:
+        whitelist (list | None): List of whitelisted words.
+        text (str): Text to check.
+
+    Returns:
+        bool: True if the text contains whitelisted words, False otherwise.
+    """
     if whitelist:
         text_lower = text.lower()
         for white_word in whitelist:
@@ -31,16 +50,35 @@ def whitelist_check(whitelist: list | None, text: str) -> bool:
     return False
 
 
+def prepare_folder(subfolder_name: str, root_folder: str | None = None):
+    """Creates temp folder if it does not exist or clears it if it does.
+
+    Args:
+        subfolder_name (str): Name of the subfolder.
+        root_folder (str | None, optional): Root folder. Defaults to None.
+    """
+    path = f"./{root_folder}/{subfolder_name}" if root_folder else f"./{subfolder_name}"
+    if subfolder_name in os.listdir(root_folder):
+        shutil.rmtree(path)
+    os.mkdir(path)
+
+
 def prepare_temp_folder():
-    if "temp" in os.listdir():
-        for root, _, files in os.walk("temp"):
-            for file in files:
-                os.remove(os.path.join(root, file))
-    else:
-        os.mkdir("temp")
+    return prepare_folder("temp")
 
 
 def prepare_text_for_reposts(text: str, item: dict, item_type: str, group_name: str) -> str:
+    """Prepares text for reposts.
+
+    Args:
+        text (str): Text to prepare.
+        item (dict): Item of the post.
+        item_type (str): Type of the item.
+        group_name (str): Name of the group.
+
+    Returns:
+        str: Prepared text.
+    """
     if item_type == "post" and text:
         from_id = item["copy_history"][0]["owner_id"]
         post_id = item["copy_history"][0]["id"]
@@ -63,6 +101,14 @@ def prepare_text_for_reposts(text: str, item: dict, item_type: str, group_name: 
 
 
 def prepare_text_for_html(text: str) -> str:
+    """Prepares text for HTML formatting.
+
+    Args:
+        text (str): Text to prepare.
+
+    Returns:
+        str: Prepared text.
+    """
     return (
         text
         .replace("&", "&amp;")
@@ -73,6 +119,16 @@ def prepare_text_for_html(text: str) -> str:
 
 
 def add_urls_to_text(text: str, urls: list, videos: list) -> str:
+    """Adds URLs to the text.
+
+    Args:
+        text (str): Text to add URLs to.
+        urls (list): List of URLs.
+        videos (list): List of URLs to videos.
+
+    Returns:
+        str: Text with URLs.
+    """
     first_link = True
     urls = videos + urls
 
@@ -90,6 +146,15 @@ def add_urls_to_text(text: str, urls: list, videos: list) -> str:
 
 
 def split_text(text: str, fragment_size: int) -> list:
+    """Splits text into fragments to fit the maximum Telegram message length.
+
+    Args:
+        text (str): Text to split.
+        fragment_size (int): Size of the fragment.
+
+    Returns:
+        list: List of fragments.
+    """
     fragments = []
     for fragment in range(0, len(text), fragment_size):
         fragments.append(text[fragment : fragment + fragment_size])
@@ -97,6 +162,7 @@ def split_text(text: str, fragment_size: int) -> list:
 
 
 def reformat_vk_links(text: str) -> str:
+    """Reformats VK links to Telegram links."""
     match = re.search(r"\[([\w.:/]+?)\|(.+?)\]", text)
     while match:
         left_text = text[: match.span()[0]]
