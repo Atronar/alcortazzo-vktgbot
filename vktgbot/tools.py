@@ -84,7 +84,7 @@ def prepare_text_for_reposts(text: str, item: dict, item_type: str, group_name: 
         post_id = item["copy_history"][0]["id"]
         link_to_repost = f"https://vk.com/wall{from_id}_{post_id}"
         text = (
-            f'{text}\n\n<a href="{link_to_repost}"><b>REPOST ↓ {group_name}</b>\n'
+            f'{text}\n\n<a href="{link_to_repost}"><b>REPOST ↓ {prepare_text_for_html(group_name)}</b>\n'
             f'<i>{time.strftime("%d %b %Y %H:%M:%S", time.localtime(item["date"]))}</i></a>'
         )
     if item_type == "repost":
@@ -92,7 +92,7 @@ def prepare_text_for_reposts(text: str, item: dict, item_type: str, group_name: 
         post_id = item["id"]
         link_to_repost = f"https://vk.com/wall{from_id}_{post_id}"
         text = (
-            f'<a href="{link_to_repost}"><b>REPOST ↓ {group_name}</b>\n'
+            f'<a href="{link_to_repost}"><b>REPOST ↓ {prepare_text_for_html(group_name)}</b>\n'
             f'<i>{time.strftime("%d %b %Y %H:%M:%S", time.localtime(item["date"]))}</i></a>\n\n'
             f'{text}'
         )
