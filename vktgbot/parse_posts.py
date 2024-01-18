@@ -34,7 +34,7 @@ def parse_post(
             )
         post_link = f'https://vk.com/wall{post["owner_id"]}_{post["id"]}'
         text = (
-            f'<a href="{post_link}"><b>{group_name}</b>\n'
+            f'<a href="{post_link}"><b>{tools.prepare_text_for_html(group_name)}</b>\n'
             f'<i>{time.strftime("%d %b %Y %H:%M:%S", time.localtime(post["date"]))}</i></a>\n\n'
             f'{text}'
         )
@@ -45,7 +45,7 @@ def parse_post(
         if copyright_link:
             text = (
                 f'{text}\n\n'
-                f'<a href="{copyright_link}">{copyright_name}</a>'
+                f'<a href="{copyright_link}">{tools.prepare_text_for_html(copyright_name)}</a>'
             )
 
     text = tools.reformat_vk_links(text)
