@@ -82,12 +82,12 @@ def prepare_text_for_reposts(text: str, item: dict, item_type: str, group_name: 
         from_id = item["copy_history"][0]["from_id"]
         post_id = item["copy_history"][0]["id"]
         link_to_repost = f"https://vk.com/wall{from_id}_{post_id}"
-        text = f'{text}\n\n<a href="{link_to_repost}"><b>REPOST ↓ {group_name}</b></a>'
+        text = f'{text}\n\n<a href="{link_to_repost}"><b>REPOST ↓ {prepare_text_for_html(group_name)}</b></a>'
     if item_type == "repost":
         from_id = item["from_id"]
         post_id = item["id"]
         link_to_repost = f"https://vk.com/wall{from_id}_{post_id}"
-        text = f'<a href="{link_to_repost}"><b>REPOST ↓ {group_name}</b></a>\n\n{text}'
+        text = f'<a href="{link_to_repost}"><b>REPOST ↓ {prepare_text_for_html(group_name)}</b></a>\n\n{text}'
 
     return text
 

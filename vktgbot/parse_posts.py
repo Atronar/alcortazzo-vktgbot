@@ -28,7 +28,7 @@ def parse_post(
         if copyright_link:
             text = (
                 f'{text}\n\n'
-                f'<a href="{copyright_link}">{copyright_name}</a>'
+                f'<a href="{copyright_link}">{tools.prepare_text_for_html(copyright_name)}</a>'
             )
 
     text = tools.reformat_vk_links(text)
