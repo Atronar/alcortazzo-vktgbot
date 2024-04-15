@@ -89,7 +89,7 @@ async def send_photo_post(
         await bot.set_chat_photo(
             tg_channel,
             types.BufferedInputFile(
-                requests.get(photos[0], stream=True).raw,
+                requests.get(photos[0], stream=True).raw.read(),
                 filename="avatar.jpg"
             )
         )
